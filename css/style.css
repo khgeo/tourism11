@@ -259,3 +259,19 @@ a.btn{text-decoration:none;display:inline-block}
 .plan .note{color:var(--muted);font-size:.88rem;margin-top:14px}
 .plantools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 @media print{.plan table{display:table}.lhead,.tabs,.lnav{display:none!important}}
+
+/* reading */
+.reading{font-size:1.04rem;line-height:2}
+.reading h2 small{font-size:.8rem;color:var(--muted);font-family:var(--body);font-weight:400}
+.reading h3{color:var(--c);font-size:1.12rem;margin:18px 0 6px}
+.reading p{margin:0 0 10px;text-align:justify}
+.reading ul{margin:4px 0 12px;padding-left:22px}
+.reading li{margin:3px 0}
+.reading .rs::after{content:"";display:block;clear:both}
+.reading .sum{background:color-mix(in srgb,var(--c) 8%,#fff);border-left:5px solid var(--c);border-radius:12px;padding:6px 16px 4px;margin-top:16px}
+.pic{margin:4px 0 12px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pic img{display:block;width:100%;max-height:420px;object-fit:cover;background:#EFE8DC}
+.pic figcaption{padding:8px 12px;font-size:.88rem;color:var(--muted);line-height:1.6}
+.pic .credit{display:block;font-size:.76rem;color:var(--muted)}
+@media (min-width:760px){.reading .rs:nth-of-type(odd) .pic{float:right;width:44%;margin:4px 0 10px 18px}.reading .rs:nth-of-type(even) .pic{float:left;width:44%;margin:4px 18px 10px 0}}
+@media print{.pic{break-inside:avoid}}

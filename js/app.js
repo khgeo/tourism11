@@ -45,6 +45,7 @@ function route() {
   else if (page === "review") renderReview(+h[1] || 1);
   else if (page === "teacher") renderTeacher();
   else if (page === "plan") renderPlanPage(h[1]);
+  else if (page === "credits") renderCredits();
   else renderHome();
   window.scrollTo(0, 0); app.focus({ preventScroll: true });
 }
@@ -115,13 +116,42 @@ function renderLesson(id, tab) {
   else B.innerHTML = moreHTML(L);
 }
 
+const CM = f => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(f) + "?width=960";
+const CP = f => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(f);
+function figHTML(im) {
+  return `<figure class="pic"><a href="${CP(im.f)}" target="_blank" rel="noopener"><img src="${CM(im.f)}" alt="${esc(im.cap)}" loading="lazy" onerror="this.closest('figure').remove()"></a>
+    <figcaption>${esc(im.cap)} <a class="credit" href="${CP(im.f)}" target="_blank" rel="noopener">រូបភាព៖ Wikimedia Commons ⓘ</a></figcaption></figure>`;
+}
+function readingHTML(L) {
+  const R = (typeof READINGS !== "undefined") && READINGS[L.id]; if (!R) return "";
+  const n = R.reduce((a, s) => a + (s.p || []).join("").length + (s.list || []).join("").length, 0);
+  return `<article class="box reading"><h2>📚 អត្ថបទមេរៀន <small>· អានប្រហែល ${kh(Math.max(3, Math.round(n / 900)))} នាទី</small></h2>
+    ${R.map((s, i) => `<section class="rs ${s.h === "សេចក្តីសង្ខេប" ? "sum" : ""}">${s.h ? `<h3>${esc(s.h)}</h3>` : ""}
+      ${s.img && i % 2 === 0 ? figHTML(s.img) : ""}
+      ${(s.p || []).map(t => `<p>${t}</p>`).join("")}
+      ${s.list ? `<ul>${s.list.map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
+      ${s.img && i % 2 === 1 ? figHTML(s.img) : ""}</section>`).join("")}
+  </article>`;
+}
+
 function learnHTML(L) {
   return `
   <div class="box"><h2>🎯 ក្រោយមេរៀននេះ អ្នកអាច៖</h2><ul class="goals">${L.goals.map(g => `<li>${esc(g)}</li>`).join("")}</ul></div>
+  ${readingHTML(L)}
   <div class="box info"><h2>🖼️ ${esc(L.info.title)}</h2>${infoHTML(L.info)}</div>
-  <div class="box"><h2>💡 ចំណុចសំខាន់</h2><div class="ideas">${L.ideas.map(i => `<div class="idea"><h3>${esc(i.h)}</h3><p>${esc(i.t)}</p></div>`).join("")}</div>
+  <div class="box"><h2>💡 ចំណុចត្រូវចងចាំ</h2><div class="ideas">${L.ideas.map(i => `<div class="idea"><h3>${esc(i.h)}</h3><p>${esc(i.t)}</p></div>`).join("")}</div>
     <div class="callout"><b>💬 សំណួរពិភាក្សា៖</b> ${esc(L.discuss)}</div></div>
   <div style="text-align:center"><a class="btn" href="#/lesson/${L.id}/play">ទៅលេងសកម្មភាព →</a></div>`;
+}
+
+function renderCredits() {
+  document.documentElement.style.setProperty("--c", "#6E655E");
+  const rows = [];
+  LESSONS.forEach(l => (READINGS[l.id] || []).forEach(s => s.img && rows.push([l, s.img])));
+  app.innerHTML = `<h1>📷 ប្រភពរូបភាព</h1>
+    <p>រូបថតទាំងអស់មកពី <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a> ដែលអនុញ្ញាតឱ្យប្រើដោយសេរី (អាជ្ញាប័ណ្ណ Creative Commons ឬសាធារណៈ)។ ចុចលើឈ្មោះឯកសារ ដើម្បីមើលឈ្មោះអ្នកថត និងលក្ខខណ្ឌអាជ្ញាប័ណ្ណ។</p>
+    <div class="box teacher"><table><tr><th>មេរៀន</th><th>រូបភាព</th><th>ឯកសារលើ Commons</th></tr>
+    ${rows.map(([l, im]) => `<tr><td><a href="#/lesson/${l.id}">${kh(l.id)}</a></td><td>${esc(im.cap)}</td><td><a href="${CP(im.f)}" target="_blank" rel="noopener">${esc(im.f)}</a></td></tr>`).join("")}</table></div>`;
 }
 
 function infoHTML(I) {
