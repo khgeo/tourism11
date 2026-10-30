@@ -17,7 +17,7 @@ let P = { quiz: {}, acts: {}, name: "", pledges: [], reviews: {} };
 try { const s = localStorage.getItem(KEY); if (s) P = Object.assign(P, JSON.parse(s)); } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} updateStamps(); };
 const hasStamp = id => (P.quiz[id] || 0) >= SITE.passScore;
-function updateStamps() { const n = LESSONS.filter(l => hasStamp(l.id)).length; const el = $("#stampCount"); if (el) el.textContent = kh(n); }
+function updateStamps() { const n = LESSONS.filter(l => hasStamp(l.id)).length; $$(".stampCount").forEach(el => el.textContent = kh(n)); }
 function markAct(lid, i) { P.acts[lid + "-" + i] = true; save(); }
 
 function toast(msg) {
@@ -27,7 +27,7 @@ function toast(msg) {
 function confetti() {
   const c = document.createElement("canvas"); c.className = "confetti"; document.body.appendChild(c);
   const x = c.getContext("2d"); c.width = innerWidth; c.height = innerHeight;
-  const cols = ["#B5542D", "#2F7D5B", "#1F6F99", "#D9A23B", "#D1495B"];
+  const cols = ["#2F3E66", "#D9A95B", "#EFD9AE", "#3D4F80", "#C8954A"];
   const ps = Array.from({ length: 140 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, v: 2 + Math.random() * 4, r: 4 + Math.random() * 5, c: cols[Math.floor(Math.random() * 5)], s: Math.random() * 6 }));
   let f = 0; (function step() { x.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.y += p.v; p.x += Math.sin((f + p.s) / 10); x.fillStyle = p.c; x.fillRect(p.x, p.y, p.r, p.r * 1.6); }); if (++f < 160) requestAnimationFrame(step); else c.remove(); })();
 }
@@ -36,7 +36,8 @@ function confetti() {
 function route() {
   const h = location.hash.replace(/^#\/?/, "").split("/");
   const page = h[0] || "home";
-  $$("#mainnav a").forEach(a => a.classList.toggle("on", a.dataset.nav === (page === "lesson" ? (h[2] === "plan" ? "plan" : "home") : page)));
+  const nav = page === "lesson" ? (h[2] === "plan" ? "plan" : "home") : page === "review" ? "home" : page;
+  $$("#mainnav a, #botnav a").forEach(a => a.classList.toggle("on", a.dataset.nav === nav));
   document.documentElement.style.removeProperty("--c");
   if (page === "lesson") renderLesson(+h[1], h[2] || "learn");
   else if (page === "map") renderMapPage();
@@ -46,63 +47,117 @@ function route() {
   else if (page === "teacher") renderTeacher();
   else if (page === "plan") renderPlanPage(h[1]);
   else if (page === "credits") renderCredits();
+  else if (page === "menu") renderMenu();
   else renderHome();
   window.scrollTo(0, 0); app.focus({ preventScroll: true });
 }
 addEventListener("hashchange", route);
 
+/* ---------- icons & illustrations (navy · mustard kit) ---------- */
+const N = "#2F3E66", G = "#D9A95B", C = "#F6EADA";
+const IC = {
+  learn: `<svg viewBox="0 0 48 48"><circle class="gc" cx="24" cy="24" r="21" fill="${G}"/><path class="gi" d="M19 14l15 10-15 10z" fill="#fff"/></svg>`,
+  play: `<svg viewBox="0 0 48 48"><rect x="6" y="31" width="34" height="8" rx="2" fill="${N}"/><rect x="9" y="22" width="32" height="8" rx="2" fill="${G}"/><rect x="5" y="13" width="30" height="8" rx="2" fill="${N}"/><path d="M9 35h26M13 26h24M9 17h22" stroke="${C}" stroke-width="1.6"/><circle cx="40" cy="12" r="5" fill="${G}"/></svg>`,
+  quiz: `<svg viewBox="0 0 48 48"><path class="gc" d="M24 4l6 13 14 1.6-10.5 9.6L36.6 42 24 34.8 11.4 42l3.1-13.8L4 18.6 18 17z" fill="${G}"/></svg>`,
+  more: `<svg viewBox="0 0 48 48"><rect x="9" y="5" width="28" height="38" rx="3" fill="${N}"/><rect x="13" y="5" width="3" height="38" fill="#24304F"/><rect x="20" y="12" width="12" height="3" rx="1.5" fill="${C}"/><rect x="20" y="18" width="12" height="3" rx="1.5" fill="${C}"/><rect x="20" y="24" width="8" height="3" rx="1.5" fill="${C}"/><path d="M37 30h4v13h-4z" fill="${G}"/></svg>`,
+  plan: `<svg viewBox="0 0 48 48"><rect x="9" y="8" width="30" height="36" rx="4" fill="${N}"/><rect x="13" y="13" width="22" height="27" rx="2" fill="${C}"/><rect x="17" y="4" width="14" height="8" rx="3" fill="${G}"/><path d="M17 21h14M17 27h14M17 33h9" stroke="${N}" stroke-width="2.4" stroke-linecap="round"/></svg>`
+};
+const ILL = {
+  screen: `<svg class="ill" viewBox="0 0 260 214"><path d="M40 60C60 10 190 0 225 50s20 130-40 150S10 200 20 140 30 80 40 60z" fill="#3D4F80"/>
+    <rect x="58" y="44" width="150" height="100" rx="8" fill="${C}" stroke="#1E2843" stroke-width="7"/><path d="M118 144h30l6 18h-42z" fill="#1E2843"/>
+    <text x="133" y="86" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="21" fill="${N}">TOURISM</text>
+    <text x="133" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="24" fill="${G}">GRADE 11</text>
+    <path d="M70 28l26-12 26 12-26 12z" fill="#1E2843"/><path d="M80 32v10c10 6 22 6 32 0V32" fill="#1E2843"/><path d="M122 28v16" stroke="${G}" stroke-width="3"/><circle cx="122" cy="46" r="4" fill="${G}"/>
+    <rect x="30" y="156" width="56" height="12" rx="3" fill="#7385B8"/><rect x="20" y="168" width="74" height="12" rx="3" fill="${G}"/><rect x="26" y="180" width="70" height="12" rx="3" fill="${C}"/><rect x="18" y="192" width="80" height="13" rx="3" fill="#7385B8"/>
+    <path d="M222 205c0-30-6-50-18-62M222 205c4-28 16-44 28-52M222 205c-10-20-28-30-42-30" stroke="#7385B8" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="204" cy="140" rx="9" ry="16" fill="#7385B8" transform="rotate(-30 204 140)"/><ellipse cx="250" cy="150" rx="8" ry="15" fill="#7385B8" transform="rotate(40 250 150)"/><path d="M206 190h32l-4 20h-24z" fill="${G}"/></svg>`,
+  passport: `<svg class="ill" viewBox="0 0 260 214"><path d="M50 40c50-40 160-30 185 30s0 130-60 140-150 0-160-60 0-80 35-110z" fill="#E7C07E"/>
+    <g transform="rotate(-8 110 120)"><rect x="60" y="45" width="100" height="140" rx="10" fill="${N}"/><rect x="66" y="45" width="6" height="140" fill="#24304F"/><circle cx="114" cy="105" r="26" fill="none" stroke="${G}" stroke-width="5"/><path d="M114 84l5 12h-10z M104 98h20l3 8h-26z M98 108h32l4 10H94z" fill="${G}"/><rect x="88" y="150" width="52" height="7" rx="3" fill="${G}"/><rect x="96" y="163" width="36" height="5" rx="2.5" fill="${G}" opacity=".7"/></g>
+    <g transform="rotate(14 190 80)"><circle cx="190" cy="80" r="30" fill="${C}" stroke="${N}" stroke-width="4" stroke-dasharray="7 5"/><path d="M176 81l10 10 18-20" stroke="${N}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g transform="rotate(-12 198 160)"><circle cx="198" cy="160" r="24" fill="#fff" stroke="#C2473A" stroke-width="4"/><text x="198" y="168" text-anchor="middle" font-family="Arial" font-weight="800" font-size="20" fill="#C2473A">KH</text></g>
+    <path d="M20 40l40 14 18-6-10 12 6 22-12-14-26 4 12-10z" fill="#fff"/></svg>`,
+  map: `<svg class="ill" viewBox="0 0 260 214"><path d="M30 80C40 20 170 0 220 40s30 140-30 160S20 200 18 140s10-40 12-60z" fill="#3D4F80"/>
+    <path d="M40 60l58-18 64 18 58-18v130l-58 18-64-18-58 18z" fill="${C}"/><path d="M98 42v130l64 18V60z" fill="${G}" opacity=".55"/>
+    <path d="M60 150c30-10 30-60 70-60s40 40 70-10" stroke="${N}" stroke-width="4" stroke-dasharray="8 7" fill="none" stroke-linecap="round"/>
+    <path d="M60 140c-12-16-20-26-20-36a20 20 0 0 1 40 0c0 10-8 20-20 36z" fill="#C2473A"/><circle cx="60" cy="104" r="8" fill="#fff"/>
+    <path d="M200 92c-12-16-20-26-20-36a20 20 0 0 1 40 0c0 10-8 20-20 36z" fill="#C2473A"/><circle cx="200" cy="56" r="8" fill="#fff"/>
+    <path d="M130 108c-9-12-15-19-15-27a15 15 0 0 1 30 0c0 8-6 15-15 27z" fill="${N}"/><circle cx="130" cy="81" r="6" fill="${G}"/>
+    <circle cx="222" cy="176" r="24" fill="#fff" stroke="${G}" stroke-width="5"/><path d="M222 158l6 18-6 18-6-18z" fill="${N}"/><path d="M222 158l6 18h-12z" fill="#C2473A"/></svg>`
+};
+const AV = `<svg viewBox="0 0 42 42"><circle cx="21" cy="16" r="8" fill="#fff"/><path d="M6 38c2-9 8-13 15-13s13 4 15 13z" fill="#fff"/></svg>`;
+function phead(prev, who, next) {
+  return `<div class="phead noprint">${prev ? `<a class="arr" href="${prev}" aria-label="មុន">«</a>` : `<span class="arr off">«</span>`}
+    ${who}${next ? `<a class="arr" href="${next}" aria-label="បន្ទាប់">»</a>` : `<span class="arr off">»</span>`}</div>`;
+}
+const meHead = () => `<a class="who" href="#/passport"><span class="avatar">${AV}</span><span><b>${P.name ? esc(P.name) : "សួស្តី អ្នកទេសចរ!"}</b><small>ត្រា ${kh(LESSONS.filter(l => hasStamp(l.id)).length)} / ${kh(LESSONS.length)} · លិខិតឆ្លងដែនទេសចរ</small></span></a>`;
+
 /* ---------- home ---------- */
 function renderHome() {
   const got = LESSONS.filter(l => hasStamp(l.id)).length;
-  const card = l => `
-    <a class="card" href="#/lesson/${l.id}" style="--c:${l.color}">
-      <span class="stamp-mini ${hasStamp(l.id) ? "got" : ""}">${hasStamp(l.id) ? "✓" : kh(l.id)}</span>
+  const nextL = LESSONS.find(l => !hasStamp(l.id)) || LESSONS[0];
+  const card = l => {
+    const nAct = l.activities.length, dAct = l.activities.filter((_, i) => P.acts[l.id + "-" + i]).length;
+    return `<a class="card ${l === nextL && got ? "next" : ""}" href="#/lesson/${l.id}">
+      <span class="tab">មេរៀនទី${kh(l.id)}</span>
+      <span class="stamp-mini ${hasStamp(l.id) ? "got" : ""}">${hasStamp(l.id) ? "✓" : ""}</span>
       <span class="ico">${l.icon}</span>
-      <span class="num">មេរៀនទី${kh(l.id)} · ម៉ោងទី${l.sessions}</span>
       <h3>${esc(l.title)}</h3>
-      <span class="tag">${esc(l.tagline)}</span>
+      <span class="num">ម៉ោងទី${l.sessions}</span>
+      <span class="bar" title="សកម្មភាព"><span style="width:${nAct ? dAct / nAct * 100 : 0}%"></span></span>
     </a>`;
+  };
   app.innerHTML = `
-  <section class="hero">
-    <svg class="temple" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4l4 9h-8z M24 16h16l3 8H21z M18 27h28l4 10H14z M10 40h44l4 14H6z" fill="#fff"/></svg>
-    <h1>${esc(SITE.title)}</h1>
-    <p>រៀន លេង តេស្ត ហើយប្រមូលត្រាលើ <b>លិខិតឆ្លងដែនទេសចរ</b> របស់អ្នក! ធ្វើតេស្តមេរៀននីមួយៗបាន ${kh(SITE.passScore)}% ឡើងទៅ ដើម្បីទទួលត្រា។</p>
-    <div class="progressbar"><span style="width:${got / LESSONS.length * 100}%"></span></div>
-    <div class="meta">ត្រាដែលបានទទួល៖ ${kh(got)} / ${kh(LESSONS.length)} ${P.name ? "· " + esc(P.name) : ""}</div>
+  ${phead("", meHead(), "#/lesson/" + nextL.id)}
+  <section class="onboard">
+    <div class="ob">${ILL.screen}<h2>រៀនទេសចរណ៍<br>តាមរបៀបថ្មី សប្បាយ</h2><p>${kh(LESSONS.length)}មេរៀន · ៣៤ម៉ោង · ល្បែង តេស្ត ផែនទី</p><div class="chev"><b>»</b> » »</div><a class="obbtn" href="#/lesson/${nextL.id}">${got ? "បន្តរៀន" : "ចាប់ផ្តើម"}</a></div>
+    <div class="ob gold">${ILL.passport}<h2>ប្រមូលត្រា<br>លើលិខិតឆ្លងដែន</h2><div class="obprog"><span style="width:${got / LESSONS.length * 100}%"></span></div><div class="chev">» <b>»</b> »</div><a class="obbtn" href="#/passport">ត្រា ${kh(got)}/${kh(LESSONS.length)}</a></div>
+    <div class="ob">${ILL.map}<h2>ស្វែងយល់កម្ពុជា<br>តំបន់ទេសចរណ៍ទាំង៤</h2><p>កន្លែងល្បីៗ ${kh(PLACES.length)} លើផែនទី</p><div class="chev">» » <b>»</b></div><a class="obbtn" href="#/map">បើកផែនទី</a></div>
   </section>
-  <div class="sem-title"><h2>ឆមាសទី១</h2><span class="line"></span></div>
+  <div class="sem-title"><h2>ឆមាសទី១</h2><span class="line"></span><span class="cnt">មេរៀនទី១-៦</span></div>
   <div class="grid">${LESSONS.filter(l => l.semester === 1).map(card).join("")}</div>
-  <div class="sem-title"><h2>ឆមាសទី២</h2><span class="line"></span></div>
+  <div class="sem-title"><h2>ឆមាសទី២</h2><span class="line"></span><span class="cnt">មេរៀនទី៧-១២</span></div>
   <div class="grid">${LESSONS.filter(l => l.semester === 2).map(card).join("")}</div>
   <div class="sem-title"><h2>ឧបករណ៍រៀនបន្ថែម</h2><span class="line"></span></div>
-  <div class="extras">
-    <a class="extra" href="#/map"><span>🗺️</span><div><b>ផែនទីទេសចរណ៍កម្ពុជា</b><small>តំបន់៤ និងកន្លែងល្បីៗ ${kh(PLACES.length)}</small></div></a>
+  ${menuRows()}`;
+}
+function menuRows() {
+  return `<div class="extras">
+    <a class="extra" href="#/map"><span>🗺</span><div><b>ផែនទីទេសចរណ៍កម្ពុជា</b><small>តំបន់៤ និងកន្លែងល្បីៗ ${kh(PLACES.length)}</small></div></a>
     <a class="extra" href="#/glossary"><span>📇</span><div><b>កាតវាក្យសព្ទ</b><small>ខ្មែរ–អង់គ្លេស ${kh(GLOSSARY.length)}ពាក្យ</small></div></a>
     <a class="extra" href="#/review/1"><span>📝</span><div><b>តេស្តរំលឹកឆមាសទី១</b><small>មេរៀនទី១-៦ (ម៉ោងទី១៧)</small></div></a>
     <a class="extra" href="#/review/2"><span>🏆</span><div><b>តេស្តរំលឹកឆមាសទី២</b><small>មេរៀនទី១-១២ (ម៉ោងទី៣៤)</small></div></a>
     <a class="extra" href="#/plan"><span>📋</span><div><b>កិច្ចតែងការបង្រៀន</b><small>ផែនការប្រចាំឆ្នាំ និងម៉ោងទាំង៣៤ · Word · PDF</small></div></a>
     <a class="extra" href="#/passport"><span>🛂</span><div><b>លិខិតឆ្លងដែនទេសចរ</b><small>ត្រា និងវិញ្ញាបនបត្រ</small></div></a>
+    <a class="extra" href="#/teacher"><span>🧑‍🏫</span><div><b>សម្រាប់គ្រូ</b><small>QR code · របៀបប្រើក្នុងថ្នាក់</small></div></a>
+    <a class="extra" href="#/credits"><span>📷</span><div><b>ប្រភពរូបភាព</b><small>Wikimedia Commons</small></div></a>
   </div>`;
+}
+function renderMenu() {
+  app.innerHTML = `<div style="text-align:center;margin:8px 0 18px"><div class="avatar" style="width:96px;height:96px;margin:0 auto 6px;border:4px solid #fff;box-shadow:var(--shadow)">${AV}</div>
+    <h1 style="margin:0">${P.name ? esc(P.name) : "អ្នកទេសចរ"}</h1><p style="margin:0;color:var(--muted)">ត្រា ${kh(LESSONS.filter(l => hasStamp(l.id)).length)} / ${kh(LESSONS.length)}</p></div>
+    <div class="extras" style="margin-bottom:10px"><a class="extra" href="#/"><span>🎓</span><div><b>មេរៀនរបស់ខ្ញុំ</b><small>${kh(LESSONS.length)}មេរៀន · ៣៤ម៉ោង</small></div></a></div>${menuRows()}`;
 }
 
 /* ---------- lesson ---------- */
-const TABS = [["learn", "📖 មេរៀន"], ["play", "🎮 សកម្មភាព"], ["quiz", "✅ តេស្ត"], ["more", "🎬 ឯកសារបន្ថែម"], ["plan", "📋 កិច្ចតែងការបង្រៀន"]];
+const TABS = [["learn", "មេរៀន"], ["play", "សកម្មភាព"], ["quiz", "តេស្ត"], ["more", "ឯកសារ"], ["plan", "កិច្ចតែងការ"]];
 function renderLesson(id, tab) {
   const L = LESSONS.find(l => l.id === id); if (!L) return renderHome();
-  document.documentElement.style.setProperty("--c", L.color);
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   const prev = LESSONS.find(l => l.id === id - 1), next = LESSONS.find(l => l.id === id + 1);
+  const nAct = L.activities.length, dAct = L.activities.filter((_, i) => P.acts[L.id + "-" + i]).length;
   app.innerHTML = `
+  ${phead(prev ? `#/lesson/${prev.id}/${tab}` : "#/", meHead(), next ? `#/lesson/${next.id}/${tab}` : "")}
   <section class="lhead">
-    <a class="back" href="#/">← មេរៀនទាំងអស់</a>
-    <span class="big">${L.icon}</span>
-    <h1>មេរៀនទី${kh(L.id)} · ${esc(L.title)}</h1>
-    <p>ម៉ោងទី${L.sessions} · ${esc(L.tagline)}</p>
+    <span class="ava">${L.icon}</span>
+    <div><span class="bubble">មេរៀនទី${kh(L.id)}</span>
+    <h1>${esc(L.title)}</h1>
+    <p>${esc(L.tagline)}</p>
+    <div class="meta"><span>⏱ ម៉ោងទី${L.sessions}</span><span>🎮 ${kh(dAct)}/${kh(nAct)}</span><span><span class="star">★</span> ${P.quiz[L.id] != null ? kh(P.quiz[L.id]) + "%" : "—"}</span></div></div>
   </section>
-  <nav class="tabs">${TABS.map(([k, t]) => `<a href="#/lesson/${id}/${k}" class="${k === tab ? "on" : ""}">${t}</a>`).join("")}</nav>
+  <nav class="tabs">${TABS.map(([k, t]) => `<a href="#/lesson/${id}/${k}" class="${k === tab ? "on" : ""}">${IC[k]}<span>${t}</span></a>`).join("")}</nav>
   <div id="tabbody"></div>
   <div class="lnav">
-    ${prev ? `<a href="#/lesson/${prev.id}">← មេរៀនទី${kh(prev.id)}<br><small>${esc(prev.title)}</small></a>` : "<span></span>"}
-    ${next ? `<a href="#/lesson/${next.id}" style="text-align:right">មេរៀនទី${kh(next.id)} →<br><small>${esc(next.title)}</small></a>` : `<a href="#/review/2" style="text-align:right">តេស្តរំលឹកចុងឆ្នាំ →</a>`}
+    ${prev ? `<a href="#/lesson/${prev.id}">« មេរៀនទី${kh(prev.id)}<br><small>${esc(prev.title)}</small></a>` : "<span></span>"}
+    ${next ? `<a href="#/lesson/${next.id}" style="text-align:right">មេរៀនទី${kh(next.id)} »<br><small>${esc(next.title)}</small></a>` : `<a href="#/review/2" style="text-align:right">តេស្តរំលឹកចុងឆ្នាំ »</a>`}
   </div>`;
   const B = $("#tabbody");
   if (tab === "learn") B.innerHTML = learnHTML(L);
@@ -112,7 +167,7 @@ function renderLesson(id, tab) {
     P.quiz[L.id] = Math.max(P.quiz[L.id] || 0, score); save();
     if (!before && hasStamp(L.id)) { confetti(); toast("🛂 អ្នកទទួលបានត្រាមេរៀនទី" + kh(L.id) + "!"); }
   }, `<a class="btn ghost" href="#/lesson/${L.id}/learn">អានមេរៀនម្តងទៀត</a> <a class="btn" href="#/passport">មើលលិខិតឆ្លងដែន</a>`);
-  else if (tab === "plan") B.innerHTML = planHTML(String(L.id), `<a class="btn ghost" href="#/lesson/${L.id}/learn">📖 ទៅមេរៀនសម្រាប់សិស្ស</a> <a class="btn ghost" href="#/lesson/${L.id}/play">🎮 សកម្មភាព</a>`);
+  else if (tab === "plan") B.innerHTML = planHTML(String(L.id), `<a class="btn ghost" href="#/lesson/${L.id}/learn">📖 មេរៀនសម្រាប់សិស្ស</a> <a class="btn ghost" href="#/lesson/${L.id}/play">🎮 សកម្មភាព</a>`);
   else B.innerHTML = moreHTML(L);
 }
 
@@ -141,11 +196,11 @@ function learnHTML(L) {
   <div class="box info"><h2>🖼️ ${esc(L.info.title)}</h2>${infoHTML(L.info)}</div>
   <div class="box"><h2>💡 ចំណុចត្រូវចងចាំ</h2><div class="ideas">${L.ideas.map(i => `<div class="idea"><h3>${esc(i.h)}</h3><p>${esc(i.t)}</p></div>`).join("")}</div>
     <div class="callout"><b>💬 សំណួរពិភាក្សា៖</b> ${esc(L.discuss)}</div></div>
-  <div style="text-align:center"><a class="btn" href="#/lesson/${L.id}/play">ទៅលេងសកម្មភាព →</a></div>`;
+  <a class="btn big" href="#/lesson/${L.id}/play">ទៅលេងសកម្មភាព »</a>`;
 }
 
 function renderCredits() {
-  document.documentElement.style.setProperty("--c", "#6E655E");
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   const rows = [];
   LESSONS.forEach(l => (READINGS[l.id] || []).forEach(s => s.img && rows.push([l, s.img])));
   app.innerHTML = `<h1>📷 ប្រភពរូបភាព</h1>
@@ -172,7 +227,7 @@ function moreHTML(L) {
   <div class="mission box" style="box-shadow:none"><h3>🚀 បេសកកម្មក្រៅថ្នាក់</h3><p>${esc(L.mission)}</p></div>
   <div class="box"><h2>🎬 វីដេអូពាក់ព័ន្ធ</h2>
     <p class="intro" style="color:var(--muted)">ចុចដើម្បីស្វែងរកវីដេអូនៅលើ YouTube។ ជ្រើសវីដេអូពីប្រភពដែលគួរឱ្យទុកចិត្ត ហើយប្រាប់គ្រូពីអ្វីដែលបានរៀន។</p>
-    <div class="media">${L.videos.map(v => `<a href="${yt(v)}" target="_blank" rel="noopener"><span>▶️</span><div>${esc(v)}<small>YouTube</small></div></a>`).join("")}</div></div>
+    <div class="media">${L.videos.map(v => `<a href="${yt(v)}" target="_blank" rel="noopener"><span class="play"></span><div>${esc(v)}<small>YouTube</small></div></a>`).join("")}</div></div>
   ${L.links.length ? `<div class="box"><h2>🔗 ប្រភពផ្លូវការ</h2><div class="media">${L.links.map(k => `<a href="${k.u}" target="_blank" rel="noopener"><span>🌐</span><div>${esc(k.t)}<small>${esc(new URL(k.u).hostname)}</small></div></a>`).join("")}</div></div>` : ""}
   <div class="box"><h2>📇 វាក្យសព្ទ</h2><p>រំលឹកពាក្យគន្លឹះខ្មែរ–អង់គ្លេស នៅ <a href="#/glossary">កាតវាក្យសព្ទ</a>។</p></div>`;
 }
@@ -180,7 +235,7 @@ function moreHTML(L) {
 /* ---------- activities ---------- */
 function renderActivities(L, B) {
   B.innerHTML = L.activities.map((a, i) => `<div class="box act" id="act${i}"><h2><span class="st">${P.acts[L.id + "-" + i] ? "✅" : "🎮"}</span> ${esc(a.title)}</h2>${a.intro ? `<p class="intro">${esc(a.intro)}</p>` : ""}<div class="actbody"></div></div>`).join("")
-    + `<div style="text-align:center"><a class="btn" href="#/lesson/${L.id}/quiz">ត្រៀមខ្លួនហើយ? ធ្វើតេស្ត →</a></div>`;
+    + `<a class="btn big" href="#/lesson/${L.id}/quiz">ត្រៀមខ្លួនហើយ? ធ្វើតេស្ត »</a>`;
   L.activities.forEach((a, i) => {
     const el = $(`#act${i} .actbody`, B), done = () => { markAct(L.id, i); $(`#act${i} h2 .st`).textContent = "✅"; };
     const f = { sort: actSort, match: actMatch, order: actOrder, flip: actFlip, scenario: actScenario, checklist: actChecklist, map: actMap, builder: toolBuilder, multiplier: toolMultiplier, clean: toolClean, plastic: toolPlastic }[a.type];
@@ -275,7 +330,7 @@ function actScenario(el, a, done) {
     $(".opts", el).onclick = e => {
       const b = e.target.closest("button"); if (!b || el._lock) return; el._lock = true;
       const o = opts[+b.dataset.i]; pts += o.s;
-      $(".fbw", el).innerHTML = `<div class="fb g${o.s}">${o.s === 2 ? "✅" : o.s === 1 ? "🟡" : "❌"} ${esc(o.f)}</div><p><button class="btn nx">បន្ទាប់ →</button></p>`;
+      $(".fbw", el).innerHTML = `<div class="fb g${o.s}">${o.s === 2 ? "✅" : o.s === 1 ? "🟡" : "❌"} ${esc(o.f)}</div><p><button class="btn big nx">បន្ទាប់ →</button></p>`;
       $(".nx", el).onclick = () => { el._lock = false; k++; draw(); };
     };
   };
@@ -295,13 +350,13 @@ function runQuiz(el, qs, onEnd, after) {
   const draw = () => {
     if (k >= qs.length) {
       const pct = Math.round(right / qs.length * 100); onEnd && onEnd(pct);
-      el.innerHTML = `<div class="box result"><div class="bignum">${kh(pct)}%</div><p>ត្រូវ ${kh(right)} / ${kh(qs.length)} សំណួរ</p>
+      el.innerHTML = `<div class="box result"><div class="ring" style="--p:${pct}"><span>${kh(pct)}%</span></div><p>ត្រូវ ${kh(right)} / ${kh(qs.length)} សំណួរ</p>
         <p>${pct >= SITE.passScore ? "🛂 អបអរសាទរ! អ្នកបានឆ្លងកាត់ ហើយទទួលបានត្រា។" : `ត្រូវការ ${kh(SITE.passScore)}% ដើម្បីទទួលត្រា។ សាកម្តងទៀត!`}</p>
         <p><button class="btn again">ធ្វើម្តងទៀត</button> ${after || ""}</p></div>`;
       $(".again", el).onclick = () => runQuiz(el, shuffle(qs), onEnd, after); return;
     }
     const q = qs[k], order = shuffle(q.o.map((t, i) => ({ t, i })));
-    el.innerHTML = `<div class="box qcard"><div class="dots">${qs.map((_, i) => `<i class="${i <= k ? "on" : ""}"></i>`).join("")}</div>
+    el.innerHTML = `<div class="box qcard"><div class="qsteps">${qs.map((_, i) => `<i class="${i < k ? "done" : i === k ? "cur" : ""}">${kh(i + 1)}</i>`).join("")}</div>
       <div class="qn">សំណួរទី${kh(k + 1)} / ${kh(qs.length)}${q.lid ? ` · មេរៀនទី${kh(q.lid)}` : ""}</div><div class="qq">${esc(q.q)}</div>
       <div class="opts">${order.map(o => `<button data-i="${o.i}">${esc(o.t)}</button>`).join("")}</div><div class="fbw"></div></div>`;
     let locked = false;
@@ -309,7 +364,7 @@ function runQuiz(el, qs, onEnd, after) {
       const b = e.target.closest("button"); if (!b || locked) return; locked = true;
       const ok = +b.dataset.i === q.a; if (ok) right++;
       b.classList.add(ok ? "ok" : "bad"); if (!ok) $(`.opts button[data-i="${q.a}"]`, el).classList.add("ok");
-      $(".fbw", el).innerHTML = `<div class="fb ${ok ? "g2" : "g0"}">${ok ? "✅ ត្រឹមត្រូវ!" : "❌ ពុំទាន់ត្រូវ។"} ${q.why ? esc(q.why) : ""}</div><p><button class="btn nx">${k + 1 < qs.length ? "បន្ទាប់ →" : "មើលលទ្ធផល"}</button></p>`;
+      $(".fbw", el).innerHTML = `<div class="fb ${ok ? "g2" : "g0"}">${ok ? "✅ ត្រឹមត្រូវ!" : "❌ ពុំទាន់ត្រូវ។"} ${q.why ? esc(q.why) : ""}</div><p><button class="btn big nx">${k + 1 < qs.length ? "បន្ទាប់ →" : "មើលលទ្ធផល"}</button></p>`;
       $(".nx", el).onclick = () => { k++; draw(); };
     };
   };
@@ -338,7 +393,7 @@ function buildMap(node, legendEl) {
 }
 
 function renderMapPage() {
-  document.documentElement.style.setProperty("--c", "#1F6F99");
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   app.innerHTML = `<h1>🗺️ ផែនទីទេសចរណ៍កម្ពុជា</h1>
     <p>ចុចលើចំណុចដើម្បីអានព័ត៌មាន។ ចុចលើឈ្មោះតំបន់ ដើម្បីបិទ/បើកការបង្ហាញ។ (ទីតាំងប្រហាក់ប្រហែល សម្រាប់ការសិក្សា)</p>
     <div class="legend" id="legend"></div><div id="map"></div>
@@ -461,7 +516,7 @@ function toolPlastic(el, a, done) {
 
 /* ---------- glossary ---------- */
 function renderGlossary() {
-  document.documentElement.style.setProperty("--c", "#7A4FA0");
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   app.innerHTML = `<h1>📇 កាតវាក្យសព្ទ ខ្មែរ–អង់គ្លេស</h1><p>ចុចលើកាតដើម្បីត្រឡប់មើលពាក្យអង់គ្លេស និងន័យ។</p>
     <div class="gtools"><input id="gq" placeholder="ស្វែងរកពាក្យ... / search"><button class="btn ghost" id="gs">🔀 លាយកាត</button><button class="btn ghost" id="gm">🔁 ប្តូរទិស (EN→KH)</button></div>
     <div class="flips" id="gl"></div>`;
@@ -477,7 +532,7 @@ function renderGlossary() {
 
 /* ---------- review tests ---------- */
 function renderReview(n) {
-  document.documentElement.style.setProperty("--c", n === 1 ? "#1F6F99" : "#B5542D");
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   const pool = LESSONS.filter(l => n === 1 ? l.semester === 1 : true).flatMap(l => l.quiz.map(q => Object.assign({ lid: l.id }, q)));
   const best = P.reviews[n];
   app.innerHTML = `<h1>${n === 1 ? "📝 តេស្តរំលឹកឆមាសទី១" : "🏆 តេស្តរំលឹកឆមាសទី២"}</h1>
@@ -497,7 +552,7 @@ function renderPassport() {
       ? `<a class="stamp got" href="#/lesson/${l.id}" style="--c:${l.color};--r:${(i % 3 - 1) * 9}deg"><span><span class="e">${l.icon}</span>មេរៀនទី${kh(l.id)}<br>${kh(P.quiz[l.id])}%</span></a>`
       : `<a class="stamp" href="#/lesson/${l.id}/quiz"><span><span class="e" style="filter:grayscale(1);opacity:.5">${l.icon}</span>មេរៀនទី${kh(l.id)}<br>ធ្វើតេស្ត</span></a>`).join("")}</div>
     <p style="text-align:center;margin-top:14px">${kh(got.length)} / ${kh(LESSONS.length)} ត្រា ${all ? "· 🎓 អ្នកបានបញ្ចប់គ្រប់មេរៀន!" : ""}</p>
-    <p class="noprint" style="text-align:center"><button class="btn" id="pprint" style="--c:#D9A23B;color:#2A2522">🖨️ បោះពុម្ព / រក្សាទុក PDF</button>
+    <p class="noprint" style="text-align:center"><button class="btn" id="pprint">🖨️ បោះពុម្ព / រក្សាទុក PDF</button>
     <button class="btn ghost" id="preset">លុបវឌ្ឍនភាព</button></p>
     <p class="noprint" style="text-align:center;font-size:.82rem;opacity:.75">វឌ្ឍនភាពរក្សាទុកក្នុងកម្មវិធីរុករក (browser) លើឧបករណ៍នេះប៉ុណ្ណោះ។ បោះពុម្ព ឬថតអេក្រង់ ដើម្បីបង្ហាញគ្រូ។</p></div>`;
   $("#pname").oninput = e => { P.name = e.target.value; save(); };
@@ -507,7 +562,7 @@ function renderPassport() {
 
 /* ---------- teacher ---------- */
 function renderTeacher() {
-  document.documentElement.style.setProperty("--c", "#2F7D5B");
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   const url = location.href.split("#")[0];
   app.innerHTML = `<div class="teacher"><h1>👩‍🏫 សម្រាប់គ្រូ</h1>
     <div class="box"><h2>📋 កិច្ចតែងការបង្រៀន</h2><p><a href="#/plan">ផែនការប្រចាំឆ្នាំ និងកិច្ចតែងការបង្រៀនទាំង៣៤ម៉ោង</a> · ${DL}</p></div>
@@ -530,23 +585,23 @@ function planHTML(key, extra) {
   if (!p) return `<div class="box"><p>មិនទាន់មានកិច្ចតែងការបង្រៀន</p></div>`;
   return `<div class="box plan"><div class="plantools noprint">${extra || ""} ${DL} <button class="btn ghost" onclick="window.print()">🖨️ បោះពុម្ព</button></div>
     <h2>📋 ${esc(p.title)}</h2>${p.html}
-    <p class="note">៤៥នាទីក្នុងមួយម៉ោង · Infographic មាននៅផ្ទាំង «📖 មេរៀន» សម្រាប់បង្ហាញលើអេក្រង់ ឬបោះពុម្ព។</p></div>`;
+    <p class="note">ម៉ោងនីមួយៗមាន «📝 សេចក្តីសង្ខេប» សម្រាប់បិទមេរៀន · ៤៥នាទីក្នុងមួយម៉ោង · Infographic មាននៅផ្ទាំង «📖 មេរៀន» សម្រាប់បង្ហាញលើអេក្រង់ ឬបោះពុម្ព។</p></div>`;
 }
 function renderPlanPage(key) {
-  document.documentElement.style.setProperty("--c", "#2F7D5B");
+  document.documentElement.style.setProperty("--c", "#2F3E66");
   if (key === "r1" || key === "r2") {
     app.innerHTML = `<p><a href="#/plan">← កិច្ចតែងការបង្រៀនទាំងអស់</a></p>` + planHTML(key, `<a class="btn ghost" href="#/review/${key === "r1" ? 1 : 2}">📝 តេស្តរំលឹកលើគេហទំព័រ</a>`);
     return;
   }
-  const row = l => `<a class="extra" href="#/lesson/${l.id}/plan" style="border-left:5px solid ${l.color}"><span>${l.icon}</span><div><b>មេរៀនទី${kh(l.id)} · ${esc(l.title)}</b><small>ម៉ោងទី${l.sessions}</small></div></a>`;
-  const rv = (k, n, t) => `<a class="extra" href="#/plan/${k}"><span>${n === 1 ? "📝" : "🏆"}</span><div><b>${t}</b><small>រំលឹក និងប្រឡង</small></div></a>`;
+  const row = l => `<a class="crow" href="#/lesson/${l.id}/plan"><span class="n">#${kh(l.id)}</span><span><b>${esc(l.title)}</b><small>${esc(l.tagline)}</small></span><span class="h">ម៉ោងទី${l.sessions}</span></a>`;
+  const rv = (k, n, t) => `<a class="crow hl" href="#/plan/${k}"><span class="n">${n === 1 ? "📝" : "🏆"}</span><span><b>${t}</b><small>រំលឹក និងប្រឡងឆមាស</small></span><span class="h">ម៉ោងទី${n === 1 ? "១៧" : "៣៤"}</span></a>`;
   app.innerHTML = `<h1>📋 ផែនការបង្រៀន និងកិច្ចតែងការបង្រៀន</h1>
     <p>មុខវិជ្ជាទេសចរណ៍ ថ្នាក់ទី១១ · ៣៤ម៉ោង · ម៉ោងនីមួយៗ ៤៥នាទី</p>
     <p class="noprint">${DL}</p>
     <div class="sem-title"><h2>ឆមាសទី១</h2><span class="line"></span></div>
-    <div class="extras">${LESSONS.filter(l => l.semester === 1).map(row).join("")}${rv("r1", 1, "ម៉ោងទី១៧ · រំលឹក និងប្រឡងឆមាសទី១")}</div>
+    <div class="clist">${LESSONS.filter(l => l.semester === 1).map(row).join("")}${rv("r1", 1, "រំលឹក និងប្រឡងឆមាសទី១")}</div>
     <div class="sem-title"><h2>ឆមាសទី២</h2><span class="line"></span></div>
-    <div class="extras">${LESSONS.filter(l => l.semester === 2).map(row).join("")}${rv("r2", 2, "ម៉ោងទី៣៤ · រំលឹក និងប្រឡងឆមាសទី២")}</div>
+    <div class="clist">${LESSONS.filter(l => l.semester === 2).map(row).join("")}${rv("r2", 2, "រំលឹក និងប្រឡងឆមាសទី២")}</div>
     ${PLANS.intro ? `<div class="box plan" style="margin-top:20px"><h2>${esc(PLANS.intro.title)}</h2>${PLANS.intro.html}</div>` : ""}
     ${PLANS.annual ? `<div class="box plan"><h2>${esc(PLANS.annual.title)}</h2>${PLANS.annual.html}</div>` : ""}`;
   // link lesson numbers in the annual table (column 2) to lesson plans
