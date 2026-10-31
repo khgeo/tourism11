@@ -29,8 +29,12 @@
   </nav>
   <nav class="mainnav tnav" id="tnav" aria-label="ម៉ឺនុយគ្រូ">
     <a href="#/teacher" data-nav="teacher">ផ្ទាំងគ្រូ</a>
+    <a href="#/teacher/log" data-nav="log">កំណត់ហេតុ</a>
+    <a href="#/teacher/students" data-nav="students">សិស្ស</a>
+    <a href="#/teacher/tests" data-nav="tests">តេស្ត</a>
+    <a href="#/teacher/scan" data-nav="scan">ស្កេន</a>
+    <a href="#/teacher/scores" data-nav="scores">ពិន្ទុ</a>
     <a href="#/plan" data-nav="plan">កិច្ចតែងការ</a>
-    <a href="#/teacher/answers" data-nav="answers">ចម្លើយ</a>
     <a href="#/" class="tback">🎓 ទំព័រសិស្ស</a>
   </nav>
 </header>
@@ -50,6 +54,14 @@
 <script src="js/data.js"></script>
 <script src="js/plans.js"></script>
 <script src="js/readings.js"></script>
+<script src="js/bank.js"></script>
+<script src="js/tools.js"></script>
 <script src="js/app.js"></script>
+<script>
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").then(() => {
+  // warm the cache with the scanner & Excel libraries so they work offline later
+  setTimeout(() => ["https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js", "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"].forEach(u => fetch(u, { mode: "no-cors" }).catch(() => {})), 4000);
+}).catch(() => {});
+</script>
 </body>
 </html>

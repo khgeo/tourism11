@@ -38,8 +38,8 @@ function route() {
   const page = h[0] || "home";
   if (page === "lesson" && h[2] === "plan") { location.replace("#/teacher/lesson/" + h[1]); return; }
   const tmode = page === "teacher" || page === "plan";
-  document.body.classList.toggle("tmode", tmode);
-  const nav = tmode ? (page === "plan" ? "plan" : h[1] === "answers" ? "answers" : "teacher") : page === "lesson" ? "home" : page;
+  document.body.classList.toggle("tmode", tmode); document.body.classList.remove("tprint"); if (window.TT) TT.stop();
+  const nav = tmode ? (page === "plan" ? "plan" : (window.TT && TT.nav(h[1])) || (h[1] === "answers" ? "answers" : "teacher")) : page === "lesson" ? "home" : page;
   $$("#mainnav a, #botnav a, #tnav a").forEach(a => a.classList.toggle("on", a.dataset.nav === nav));
   document.documentElement.style.removeProperty("--c");
   if (page === "lesson") renderLesson(+h[1], h[2] || "learn");
@@ -47,7 +47,7 @@ function route() {
   else if (page === "glossary") renderGlossary();
   else if (page === "passport") renderPassport();
   else if (page === "review") renderReview(+h[1] || 1);
-  else if (page === "teacher") renderTeacher(h[1], h[2]);
+  else if (page === "teacher") renderTeacher(h[1], h[2], h[3], h[4]);
   else if (page === "plan") renderPlanPage(h[1]);
   else if (page === "credits") renderCredits();
   else if (page === "menu") renderMenu();
@@ -578,8 +578,9 @@ function answerList(L) {
   return `<ol class="akey">${L.quiz.map(q => `<li><span>${esc(q.q)}</span> <b class="ans">${ABCD[q.a]} · ${esc(q.o[q.a])}</b>${q.why ? `<small>${esc(q.why)}</small>` : ""}</li>`).join("")}</ol>`;
 }
 
-function renderTeacher(sub, n) {
+function renderTeacher(sub, n, x, y) {
   document.documentElement.style.setProperty("--c", "#2F3E66");
+  if (sub && window.TT && TT.route(sub, n, x, { app, toast, c: y })) return;
   if (sub === "lesson" && LESSONS.some(l => l.id === +n)) return renderTeacherLesson(+n);
   if (sub === "answers") return renderAnswers();
   const url = location.href.split("#")[0];
@@ -587,6 +588,7 @@ function renderTeacher(sub, n) {
     <td><a href="#/teacher/lesson/${l.id}"><b>${esc(l.title)}</b></a><small>ម៉ោងទី${l.sessions}</small></td>
     <td class="acts"><a href="#/teacher/lesson/${l.id}" title="កិច្ចតែងការ">📋</a><a href="${SL(l.id)}.pptx" download title="PowerPoint">⬇️</a><a href="${SL(l.id)}.pdf" target="_blank" rel="noopener" title="PDF គ្រូ">📄</a><a href="${SL(l.id)}-student.pdf" target="_blank" rel="noopener" title="PDF សិស្ស">📱</a><a href="#/lesson/${l.id}" title="ទំព័រសិស្ស">🎓</a></td></tr>`;
   app.innerHTML = tHead("ផ្ទាំងគ្រូ", "កិច្ចតែងការ ស្លាយ ចម្លើយតេស្ត និងការណែនាំសម្រាប់ថ្នាក់ ៥០-៦០នាក់ — ទំព័រនេះមិនបង្ហាញក្នុងម៉ឺនុយសិស្សទេ។")
+  + (window.TT ? TT.dashCards() : "")
   + `<div class="tgrid">
       <a class="tcard" href="#/plan"><span>📋</span><b>ផែនការ និងកិច្ចតែងការ</b><small>ប្រចាំឆ្នាំ · ៣៤ម៉ោង · ថ្នាក់ធំគ្មាន LCD</small></a>
       <a class="tcard" href="#/teacher/answers"><span>🔑</span><b>ចម្លើយតេស្ត</b><small>តេស្តរហ័សទាំង១២មេរៀន</small></a>
