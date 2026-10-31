@@ -17,27 +17,32 @@
 <header class="topbar">
   <a href="#/" class="brand" aria-label="ទំព័រដើម">
     <img src="assets/icon.svg" alt="" width="34" height="34">
-    <span><b>ទេសចរណ៍ ១១</b><small>មេរៀនអន្តរកម្ម</small></span>
+    <span><b>ទេសចរណ៍ ១១</b><small class="bs">មេរៀនអន្តរកម្ម</small><small class="bt">ទំព័រគ្រូ</small></span>
   </a>
   <nav class="mainnav" id="mainnav">
     <a href="#/" data-nav="home">មេរៀន</a>
     <a href="#/map" data-nav="map">ផែនទី</a>
     <a href="#/glossary" data-nav="glossary">វាក្យសព្ទ</a>
-    <a href="#/plan" data-nav="plan">កិច្ចតែងការ</a>
     <a href="#/review/1" data-nav="review">តេស្តរំលឹក</a>
     <a href="#/passport" data-nav="passport" class="pp-link">លិខិតឆ្លងដែន <span class="pill stampCount">០</span></a>
     <a href="#/menu" data-nav="menu">☰</a>
   </nav>
+  <nav class="mainnav tnav" id="tnav" aria-label="ម៉ឺនុយគ្រូ">
+    <a href="#/teacher" data-nav="teacher">ផ្ទាំងគ្រូ</a>
+    <a href="#/plan" data-nav="plan">កិច្ចតែងការ</a>
+    <a href="#/teacher/answers" data-nav="answers">ចម្លើយ</a>
+    <a href="#/" class="tback">🎓 ទំព័រសិស្ស</a>
+  </nav>
 </header>
 <main id="app" tabindex="-1"></main>
 <footer class="foot">
-  <p>មេរៀនផ្អែកលើកម្មវិធីសិក្សា និងសៀវភៅទេសចរណ៍ថ្នាក់ទី១១ (នាយកដ្ឋានអភិវឌ្ឍកម្មវិធីសិក្សា)។ <a href="#/teacher">សម្រាប់គ្រូ</a> · <a href="#/credits">ប្រភពរូបភាព</a></p>
+  <p>មេរៀនផ្អែកលើកម្មវិធីសិក្សា និងសៀវភៅទេសចរណ៍ថ្នាក់ទី១១ (នាយកដ្ឋានអភិវឌ្ឍកម្មវិធីសិក្សា)។ <a href="#/teacher">🧑‍🏫 ទំព័រគ្រូ</a> · <a href="#/credits">ប្រភពរូបភាព</a></p>
 </footer>
 <nav class="botnav" id="botnav" aria-label="ម៉ឺនុយ">
   <a href="#/menu" data-nav="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>ម៉ឺនុយ</a>
   <a href="#/map" data-nav="map"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>ផែនទី</a>
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 1 8.5 12 14l9-4.5V16h2V8.5z"/><path d="M5.5 12.2v3.8c0 1.7 3 3.5 6.5 3.5s6.5-1.8 6.5-3.5v-3.8L12 15.5z"/></svg>មេរៀន</a>
-  <a href="#/plan" data-nav="plan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h11a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm2 4v2h8V6zm0 4v2h8v-2zm0 4v2h5v-2z"/></svg>ផែនការ</a>
+  <a href="#/glossary" data-nav="glossary"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h10a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3zm4 4v2h6V8zm0 4v2h6v-2z"/><path d="M19 7h1a1 1 0 0 1 1 1v13H9v-1h10z" opacity=".6"/></svg>វាក្យសព្ទ</a>
   <a href="#/passport" data-nav="passport"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm6 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-4 11v2h8v-2z"/></svg>ត្រា<span class="badge stampCount">០</span></a>
 </nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>

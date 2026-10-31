@@ -36,15 +36,18 @@ function confetti() {
 function route() {
   const h = location.hash.replace(/^#\/?/, "").split("/");
   const page = h[0] || "home";
-  const nav = page === "lesson" ? (h[2] === "plan" ? "plan" : "home") : page === "review" ? "home" : page;
-  $$("#mainnav a, #botnav a").forEach(a => a.classList.toggle("on", a.dataset.nav === nav));
+  if (page === "lesson" && h[2] === "plan") { location.replace("#/teacher/lesson/" + h[1]); return; }
+  const tmode = page === "teacher" || page === "plan";
+  document.body.classList.toggle("tmode", tmode);
+  const nav = tmode ? (page === "plan" ? "plan" : h[1] === "answers" ? "answers" : "teacher") : page === "lesson" ? "home" : page;
+  $$("#mainnav a, #botnav a, #tnav a").forEach(a => a.classList.toggle("on", a.dataset.nav === nav));
   document.documentElement.style.removeProperty("--c");
   if (page === "lesson") renderLesson(+h[1], h[2] || "learn");
   else if (page === "map") renderMapPage();
   else if (page === "glossary") renderGlossary();
   else if (page === "passport") renderPassport();
   else if (page === "review") renderReview(+h[1] || 1);
-  else if (page === "teacher") renderTeacher();
+  else if (page === "teacher") renderTeacher(h[1], h[2]);
   else if (page === "plan") renderPlanPage(h[1]);
   else if (page === "credits") renderCredits();
   else if (page === "menu") renderMenu();
@@ -125,9 +128,7 @@ function menuRows() {
     <a class="extra" href="#/glossary"><span>📇</span><div><b>កាតវាក្យសព្ទ</b><small>ខ្មែរ–អង់គ្លេស ${kh(GLOSSARY.length)}ពាក្យ</small></div></a>
     <a class="extra" href="#/review/1"><span>📝</span><div><b>តេស្តរំលឹកឆមាសទី១</b><small>មេរៀនទី១-៦ (ម៉ោងទី១៧)</small></div></a>
     <a class="extra" href="#/review/2"><span>🏆</span><div><b>តេស្តរំលឹកឆមាសទី២</b><small>មេរៀនទី១-១២ (ម៉ោងទី៣៤)</small></div></a>
-    <a class="extra" href="#/plan"><span>📋</span><div><b>កិច្ចតែងការបង្រៀន</b><small>ផែនការប្រចាំឆ្នាំ និងម៉ោងទាំង៣៤ · Word · PDF</small></div></a>
     <a class="extra" href="#/passport"><span>🛂</span><div><b>លិខិតឆ្លងដែនទេសចរ</b><small>ត្រា និងវិញ្ញាបនបត្រ</small></div></a>
-    <a class="extra" href="#/teacher"><span>🧑‍🏫</span><div><b>សម្រាប់គ្រូ</b><small>QR code · របៀបប្រើក្នុងថ្នាក់</small></div></a>
     <a class="extra" href="#/credits"><span>📷</span><div><b>ប្រភពរូបភាព</b><small>Wikimedia Commons</small></div></a>
   </div>`;
 }
@@ -138,7 +139,7 @@ function renderMenu() {
 }
 
 /* ---------- lesson ---------- */
-const TABS = [["learn", "មេរៀន"], ["play", "សកម្មភាព"], ["quiz", "តេស្ត"], ["more", "ឯកសារ"], ["plan", "កិច្ចតែងការ"]];
+const TABS = [["learn", "មេរៀន"], ["play", "សកម្មភាព"], ["quiz", "តេស្ត"], ["more", "ឯកសារ"]];
 function renderLesson(id, tab) {
   const L = LESSONS.find(l => l.id === id); if (!L) return renderHome();
   document.documentElement.style.setProperty("--c", "#2F3E66");
@@ -167,7 +168,6 @@ function renderLesson(id, tab) {
     P.quiz[L.id] = Math.max(P.quiz[L.id] || 0, score); save();
     if (!before && hasStamp(L.id)) { confetti(); toast("🛂 អ្នកទទួលបានត្រាមេរៀនទី" + kh(L.id) + "!"); }
   }, `<a class="btn ghost" href="#/lesson/${L.id}/learn">អានមេរៀនម្តងទៀត</a> <a class="btn" href="#/passport">មើលលិខិតឆ្លងដែន</a>`);
-  else if (tab === "plan") B.innerHTML = planHTML(String(L.id), `<a class="btn ghost" href="#/lesson/${L.id}/learn">📖 មេរៀនសម្រាប់សិស្ស</a> <a class="btn ghost" href="#/lesson/${L.id}/play">🎮 សកម្មភាព</a>`);
   else B.innerHTML = moreHTML(L);
 }
 
@@ -230,6 +230,8 @@ function moreHTML(L) {
   const yt = q => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
   return `
   <div class="mission box" style="box-shadow:none"><h3>🚀 បេសកកម្មក្រៅថ្នាក់</h3><p>${esc(L.mission)}</p></div>
+  <div class="box"><h2>🖼️ ស្លាយមេរៀន សម្រាប់រំលឹក</h2><p>រូបភាព ផែនទី ពាក្យគន្លឹះ តេស្តរហ័ស និងមេរៀនសង្ខេបនៃមេរៀនទាំងមូល — មើលលើទូរស័ព្ទ ឬបោះពុម្ព។</p>
+    <a class="btn" href="${SL(L.id)}-student.pdf" target="_blank" rel="noopener">📄 បើកស្លាយ (PDF)</a></div>
   <div class="box"><h2>🎬 វីដេអូពាក់ព័ន្ធ</h2>
     <p class="intro" style="color:var(--muted)">ចុចដើម្បីស្វែងរកវីដេអូនៅលើ YouTube។ ជ្រើសវីដេអូពីប្រភពដែលគួរឱ្យទុកចិត្ត ហើយប្រាប់គ្រូពីអ្វីដែលបានរៀន។</p>
     <div class="media">${L.videos.map(v => `<a href="${yt(v)}" target="_blank" rel="noopener"><span class="play"></span><div>${esc(v)}<small>YouTube</small></div></a>`).join("")}</div></div>
@@ -565,22 +567,75 @@ function renderPassport() {
   $("#preset").onclick = () => { if (confirm("លុបពិន្ទុ និងត្រាទាំងអស់?")) { P = { quiz: {}, acts: {}, name: P.name, pledges: [], reviews: {} }; save(); renderPassport(); } };
 }
 
-/* ---------- teacher ---------- */
-function renderTeacher() {
+/* ---------- teacher area (#/teacher, #/plan) ---------- */
+const SL = n => "plan/slides/tourism11-lesson-" + String(n).padStart(2, "0");
+const ABCD = ["A", "B", "C", "D"];
+const tHead = (title, sub) => `<div class="thead"><span class="tbadge">🧑‍🏫 ទំព័រគ្រូ</span><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div>`;
+const slideBtns = n => `<a class="btn" href="${SL(n)}.pptx" download>⬇️ PowerPoint</a>
+  <a class="btn ghost" href="${SL(n)}.pdf" target="_blank" rel="noopener">📄 PDF គ្រូ</a>
+  <a class="btn ghost" href="${SL(n)}-student.pdf" target="_blank" rel="noopener">📱 PDF សិស្ស</a>`;
+function answerList(L) {
+  return `<ol class="akey">${L.quiz.map(q => `<li><span>${esc(q.q)}</span> <b class="ans">${ABCD[q.a]} · ${esc(q.o[q.a])}</b>${q.why ? `<small>${esc(q.why)}</small>` : ""}</li>`).join("")}</ol>`;
+}
+
+function renderTeacher(sub, n) {
   document.documentElement.style.setProperty("--c", "#2F3E66");
+  if (sub === "lesson" && LESSONS.some(l => l.id === +n)) return renderTeacherLesson(+n);
+  if (sub === "answers") return renderAnswers();
   const url = location.href.split("#")[0];
-  app.innerHTML = `<div class="teacher"><h1>👩‍🏫 សម្រាប់គ្រូ</h1>
-    <div class="box"><h2>📋 កិច្ចតែងការបង្រៀន</h2><p><a href="#/plan">ផែនការប្រចាំឆ្នាំ និងកិច្ចតែងការបង្រៀនទាំង៣៤ម៉ោង</a> · ${DL}</p></div>
-    <div class="box"><h2>ចែករំលែកជាមួយសិស្ស</h2><p>ឱ្យសិស្សស្កេន QR ឬបើកតំណ៖ <a href="${url}">${esc(url)}</a></p><div id="qr"></div></div>
-    <div class="box"><h2>របៀបប្រើក្នុងម៉ោងសិក្សា (៤៥នាទី)</h2>
-      <ol><li><b>ចាប់ផ្តើម (៥នាទី)</b> — បង្ហាញ infographic នៅលើ «📖 មេរៀន»។</li><li><b>មេរៀនថ្មី (២០នាទី)</b> — ពន្យល់ «ចំណុចសំខាន់» និងសំណួរពិភាក្សា។</li><li><b>អនុវត្ត (១៥នាទី)</b> — សិស្សលេង «🎮 សកម្មភាព» ជាក្រុម ឬម្នាក់ៗ។</li><li><b>បូកសរុប (៥នាទី)</b> — «✅ តេស្ត» ហើយសិស្សបង្ហាញត្រាលើលិខិតឆ្លងដែន។</li></ol>
-      <p>វឌ្ឍនភាពរក្សាទុកនៅលើទូរស័ព្ទ/កុំព្យូទ័ររបស់សិស្សម្នាក់ៗ (មិនត្រូវការចុះឈ្មោះ)។ ឱ្យសិស្សបោះពុម្ព ឬថតអេក្រង់លិខិតឆ្លងដែន ដើម្បីបញ្ជាក់។</p></div>
-    <div class="box"><h2>ផែនការម៉ោងសិក្សា ៣៤ម៉ោង</h2><table><tr><th>ម៉ោង</th><th>មេរៀន</th><th>សកម្មភាពលើគេហទំព័រ</th></tr>
-      ${LESSONS.map(l => `<tr><td>${l.sessions}</td><td><a href="#/lesson/${l.id}">${kh(l.id)}. ${esc(l.title)}</a></td><td>${l.activities.map(a => esc(a.title.replace(/^[^៖]*៖\s*/, ""))).join(" · ")}</td></tr>`).join("")}
-      <tr><td>១៧</td><td><a href="#/review/1">រំលឹក និងប្រឡងឆមាសទី១</a></td><td>តេស្តរំលឹក មេរៀនទី១-៦</td></tr>
-      <tr><td>៣៤</td><td><a href="#/review/2">រំលឹក និងប្រឡងឆមាសទី២</a></td><td>តេស្តរំលឹក មេរៀនទី១-១២</td></tr></table></div>
-    <div class="box"><h2>កែប្រែខ្លឹមសារ</h2><p>អត្ថបទ សំណួរ តំណវីដេអូ និងទីតាំងលើផែនទីទាំងអស់ នៅក្នុងឯកសារ <code>js/data.js</code>។ កែនៅលើ GitHub ហើយចុច Commit — គេហទំព័រនឹងធ្វើបច្ចុប្បន្នភាពក្នុងរយៈពេលប៉ុន្មាននាទី។</p></div></div>`;
-  if (window.QRCode) new QRCode($("#qr"), { text: url, width: 180, height: 180 });
+  const row = l => `<tr><td class="n">${kh(l.id)}</td>
+    <td><a href="#/teacher/lesson/${l.id}"><b>${esc(l.title)}</b></a><small>ម៉ោងទី${l.sessions}</small></td>
+    <td class="acts"><a href="#/teacher/lesson/${l.id}" title="កិច្ចតែងការ">📋</a><a href="${SL(l.id)}.pptx" download title="PowerPoint">⬇️</a><a href="${SL(l.id)}.pdf" target="_blank" rel="noopener" title="PDF គ្រូ">📄</a><a href="${SL(l.id)}-student.pdf" target="_blank" rel="noopener" title="PDF សិស្ស">📱</a><a href="#/lesson/${l.id}" title="ទំព័រសិស្ស">🎓</a></td></tr>`;
+  app.innerHTML = tHead("ផ្ទាំងគ្រូ", "កិច្ចតែងការ ស្លាយ ចម្លើយតេស្ត និងការណែនាំសម្រាប់ថ្នាក់ ៥០-៦០នាក់ — ទំព័រនេះមិនបង្ហាញក្នុងម៉ឺនុយសិស្សទេ។")
+  + `<div class="tgrid">
+      <a class="tcard" href="#/plan"><span>📋</span><b>ផែនការ និងកិច្ចតែងការ</b><small>ប្រចាំឆ្នាំ · ៣៤ម៉ោង · ថ្នាក់ធំគ្មាន LCD</small></a>
+      <a class="tcard" href="#/teacher/answers"><span>🔑</span><b>ចម្លើយតេស្ត</b><small>តេស្តរហ័សទាំង១២មេរៀន</small></a>
+      <a class="tcard" href="plan/tourism11-lesson-plan.docx" download><span>📝</span><b>កិច្ចតែងការ Word</b><small>ទាញយក ហើយកែបាន</small></a>
+      <a class="tcard" href="plan/tourism11-lesson-plan.pdf" target="_blank" rel="noopener"><span>🖨️</span><b>កិច្ចតែងការ PDF</b><small>សម្រាប់បោះពុម្ព</small></a>
+    </div>
+    <div class="box"><h2>📚 សម្ភារៈតាមមេរៀន</h2>
+      <p class="legend">📋 កិច្ចតែងការ · ⬇️ PowerPoint (កែបាន) · 📄 PDF គ្រូ (មានកាតចម្លើយ) · 📱 PDF សិស្ស (គ្មានកាតចម្លើយ) · 🎓 ទំព័រសិស្ស</p>
+      <table class="ttable">${LESSONS.map(row).join("")}
+        <tr><td class="n">📝</td><td><a href="#/plan/r1"><b>រំលឹក និងប្រឡងឆមាសទី១</b></a><small>ម៉ោងទី១៧</small></td><td class="acts"><a href="#/plan/r1">📋</a><a href="#/review/1">🎓</a></td></tr>
+        <tr><td class="n">🏆</td><td><a href="#/plan/r2"><b>រំលឹក និងប្រឡងឆមាសទី២</b></a><small>ម៉ោងទី៣៤</small></td><td class="acts"><a href="#/plan/r2">📋</a><a href="#/review/2">🎓</a></td></tr></table></div>
+    <div class="box tshare"><div><h2>📲 ចែករំលែកជាមួយសិស្ស</h2>
+      <p>ឱ្យសិស្សស្កេន QR ឬផ្ញើតំណតាម Telegram៖<br><a href="${url}">${esc(url)}</a></p>
+      <ul><li>ផ្ញើតែ <b>ទំព័រដើម</b> (មិនមែន #/teacher)។ ម៉ឺនុយសិស្សមិនមានតំណទៅទំព័រគ្រូទេ។</li>
+      <li>ចែក <b>📱 PDF សិស្ស</b> តាម Telegram ក្រោយមេរៀន សម្រាប់រំលឹក។ <b>📄 PDF គ្រូ</b> មានកាតកាត់ដែលមានចម្លើយ — ទុកសម្រាប់បោះពុម្ពប៉ុណ្ណោះ។</li>
+      <li>១ទូរស័ព្ទ/ក្រុម ក៏គ្រប់គ្រាន់។ ត្រារបស់សិស្សរក្សាទុកក្នុងទូរស័ព្ទនីមួយៗ (មិនត្រូវចុះឈ្មោះ)។</li></ul></div><div id="qr"></div></div>
+    <div class="box"><h2>👀 សិស្សឃើញអ្វី · គ្រូឃើញអ្វី</h2>
+      <table class="cmp"><tr><th>🎓 ទំព័រសិស្ស</th><th>🧑‍🏫 ទំព័រគ្រូ</th></tr>
+      <tr><td>មេរៀន អត្ថបទតាមសៀវភៅ រូបភាព</td><td>កិច្ចតែងការ ៣៤ម៉ោង និងផែនការប្រចាំឆ្នាំ</td></tr>
+      <tr><td>ល្បែងសកម្មភាព តេស្ត និងត្រា</td><td>សកម្មភាពថ្នាក់ធំ និងកាតសម្រាប់កាត់</td></tr>
+      <tr><td>ផែនទី វាក្យសព្ទ តេស្តរំលឹកឆមាស</td><td>ចម្លើយតេស្តទាំងអស់</td></tr>
+      <tr><td>ស្លាយ PDF សិស្ស (គ្មានចម្លើយ)</td><td>PowerPoint ស្លាយ PDF គ្រូ Word</td></tr></table>
+      <p class="legend">ចំណាំ៖ ទំព័រគ្រូត្រូវបានលាក់ពីម៉ឺនុយសិស្ស ប៉ុន្តែមិនមានពាក្យសម្ងាត់ទេ — អ្នកដែលដឹងតំណ #/teacher អាចបើកបាន។</p></div>
+    <div class="box"><h2>✏️ កែស្លាយដោយខ្លួនឯង</h2>
+      <ol><li>បើក GitHub › ថត <code>plan/slides</code> › ចុចឯកសារ › ប៊ូតុង Download។</li>
+      <li>កែក្នុង PowerPoint (ត្រូវមានពុម្ពអក្សរ Khmer OS Siemreap និង Khmer OS Muol Light) ហើយ Save ដោយប្រើឈ្មោះដដែល។</li>
+      <li>File › Save As › PDF ដើម្បីបង្កើត PDF ថ្មីផងដែរ។</li>
+      <li>GitHub › Add file › Upload files › ដាក់ឯកសារទាំងពីរ › Commit changes។ គេហទំព័រធ្វើបច្ចុប្បន្នភាពក្នុង ១-២នាទី។</li></ol></div>`;
+  if (window.QRCode) new QRCode($("#qr"), { text: url, width: 170, height: 170 });
+}
+
+function renderTeacherLesson(id) {
+  const L = LESSONS.find(l => l.id === id);
+  const prev = LESSONS.find(l => l.id === id - 1), next = LESSONS.find(l => l.id === id + 1);
+  app.innerHTML = `<p class="noprint"><a href="#/teacher">← ផ្ទាំងគ្រូ</a></p>`
+  + tHead(`មេរៀនទី${kh(id)} · ${esc(L.title)}`, `ម៉ោងទី${L.sessions} · ${esc(L.tagline)}`)
+  + `<div class="box noprint"><h2>🖼️ ស្លាយ និងសម្ភារៈ</h2><p class="tbtns">${slideBtns(id)} <a class="btn ghost" href="#/lesson/${id}">🎓 ទំព័រសិស្ស</a></p>
+      <p class="legend">ស្លាយ A4 ផ្តេក៖ បោះពុម្ព ១ឈុត/ក្រុម ឬបិទជា A3 លើក្តារ។ ស្លាយ «កាតសម្រាប់កាត់» មានតែក្នុង PDF គ្រូ និង PowerPoint។ កំណត់ចំណាំគ្រូនៅក្រោមស្លាយនីមួយៗក្នុង PowerPoint។</p></div>
+    <details class="box noprint"><summary><h2 style="display:inline">🔑 ចម្លើយតេស្តរហ័ស</h2></summary>${answerList(L)}</details>
+    <div id="tplan"></div>
+    <div class="lnav noprint">${prev ? `<a href="#/teacher/lesson/${prev.id}">« មេរៀនទី${kh(prev.id)}<br><small>${esc(prev.title)}</small></a>` : `<a href="#/plan">« ផែនការប្រចាំឆ្នាំ</a>`}
+      ${next ? `<a href="#/teacher/lesson/${next.id}" style="text-align:right">មេរៀនទី${kh(next.id)} »<br><small>${esc(next.title)}</small></a>` : `<a href="#/plan/r2" style="text-align:right">រំលឹក និងប្រឡងឆមាសទី២ »</a>`}</div>`;
+  $("#tplan").innerHTML = planHTML(String(id), "");
+}
+
+function renderAnswers() {
+  app.innerHTML = `<p class="noprint"><a href="#/teacher">← ផ្ទាំងគ្រូ</a> <button class="btn ghost" onclick="window.print()">🖨️ បោះពុម្ព</button></p>`
+  + tHead("🔑 ចម្លើយតេស្តរហ័ស", "សំណួរតេស្តលើគេហទំព័រ និងស្លាយ «តេស្តរហ័ស៖ លើកកាត A B C D» · តេស្តរំលឹកឆមាសជ្រើសសំណួរពីបញ្ជីនេះដោយចៃដន្យ")
+  + LESSONS.map(L => `<div class="box"><h2><a href="#/teacher/lesson/${L.id}">មេរៀនទី${kh(L.id)} · ${esc(L.title)}</a></h2>${answerList(L)}</div>`).join("");
 }
 
 /* ---------- lesson plans ---------- */
@@ -595,10 +650,10 @@ function planHTML(key, extra) {
 function renderPlanPage(key) {
   document.documentElement.style.setProperty("--c", "#2F3E66");
   if (key === "r1" || key === "r2") {
-    app.innerHTML = `<p><a href="#/plan">← កិច្ចតែងការបង្រៀនទាំងអស់</a></p>` + planHTML(key, `<a class="btn ghost" href="#/review/${key === "r1" ? 1 : 2}">📝 តេស្តរំលឹកលើគេហទំព័រ</a>`);
+    app.innerHTML = `<p class="noprint"><a href="#/plan">← កិច្ចតែងការបង្រៀនទាំងអស់</a></p>` + planHTML(key, `<a class="btn ghost" href="#/review/${key === "r1" ? 1 : 2}">📝 តេស្តរំលឹកលើគេហទំព័រ</a>`);
     return;
   }
-  const row = l => `<a class="crow" href="#/lesson/${l.id}/plan"><span class="n">#${kh(l.id)}</span><span><b>${esc(l.title)}</b><small>${esc(l.tagline)}</small></span><span class="h">ម៉ោងទី${l.sessions}</span></a>`;
+  const row = l => `<a class="crow" href="#/teacher/lesson/${l.id}"><span class="n">#${kh(l.id)}</span><span><b>${esc(l.title)}</b><small>${esc(l.tagline)}</small></span><span class="h">ម៉ោងទី${l.sessions}</span></a>`;
   const rv = (k, n, t) => `<a class="crow hl" href="#/plan/${k}"><span class="n">${n === 1 ? "📝" : "🏆"}</span><span><b>${t}</b><small>រំលឹក និងប្រឡងឆមាស</small></span><span class="h">ម៉ោងទី${n === 1 ? "១៧" : "៣៤"}</span></a>`;
   app.innerHTML = `<h1>📋 ផែនការបង្រៀន និងកិច្ចតែងការបង្រៀន</h1>
     <p>មុខវិជ្ជាទេសចរណ៍ ថ្នាក់ទី១១ · ៣៤ម៉ោង · ម៉ោងនីមួយៗ ៤៥នាទី</p>
@@ -613,7 +668,7 @@ function renderPlanPage(key) {
   $$(".plan table", app).forEach(t => $$("tbody tr", t).forEach(tr => {
     const c = tr.children[1]; if (!c) return;
     const n = parseInt(c.textContent.trim().replace(/[០-៩]/g, d => KH.indexOf(d)), 10);
-    if (n >= 1 && n <= 12 && /^[០-៩]+$/.test(c.textContent.trim())) c.innerHTML = `<a href="#/lesson/${n}/plan">${c.textContent}</a>`;
+    if (n >= 1 && n <= 12 && /^[០-៩]+$/.test(c.textContent.trim())) c.innerHTML = `<a href="#/teacher/lesson/${n}">${c.textContent}</a>`;
   }));
 }
 
