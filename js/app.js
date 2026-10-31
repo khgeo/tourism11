@@ -179,13 +179,18 @@ function figHTML(im) {
 }
 function readingHTML(L) {
   const R = (typeof READINGS !== "undefined") && READINGS[L.id]; if (!R) return "";
-  const n = R.reduce((a, s) => a + (s.p || []).join("").length + (s.list || []).join("").length, 0);
-  return `<article class="box reading"><h2>📚 អត្ថបទមេរៀន <small>· អានប្រហែល ${kh(Math.max(3, Math.round(n / 900)))} នាទី</small></h2>
-    ${R.map((s, i) => `<section class="rs ${s.h === "សេចក្តីសង្ខេប" ? "sum" : ""}">${s.h ? `<h3>${esc(s.h)}</h3>` : ""}
-      ${s.img && i % 2 === 0 ? figHTML(s.img) : ""}
-      ${(s.p || []).map(t => `<p>${t}</p>`).join("")}
-      ${s.list ? `<ul>${s.list.map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
-      ${s.img && i % 2 === 1 ? figHTML(s.img) : ""}</section>`).join("")}
+  const T = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  const txt = x => typeof x === "string" ? x : x.h4 || (x.li || []).join("");
+  const n = R.reduce((a, s) => a + (s.b || []).map(txt).join("").length, 0);
+  const block = x => typeof x === "string" ? `<p>${T(x)}</p>` : x.h4 ? `<h4>${T(x.h4)}</h4>` : `<ul>${x.li.map(t => `<li>${T(t)}</li>`).join("")}</ul>`;
+  const sec = (s, i) => {
+    const cls = s.h === "មេរៀនសង្ខេប" ? "sum" : s.h === "សំណួរ" ? "qs" : "";
+    const imgs = (s.imgs || []).map(figHTML).join("");
+    const body = s.h === "សំណួរ" ? `<ol>${s.b.flatMap(x => x.li || [x]).map(t => `<li>${T(t)}</li>`).join("")}</ol>` : (s.b || []).map(block).join("");
+    return `<section class="rs ${cls}">${s.h ? `<h3>${s.h === "សំណួរ" ? "❓ " : s.h === "មេរៀនសង្ខេប" ? "📝 " : ""}${esc(s.h)}</h3>` : ""}${imgs}${body}</section>`;
+  };
+  return `<article class="box reading"><h2>📚 អត្ថបទមេរៀន <small>· តាមសៀវភៅទេសចរណ៍ថ្នាក់ទី១១ · អានប្រហែល ${kh(Math.max(3, Math.round(n / 700)))} នាទី</small></h2>
+    ${R.map(sec).join("")}
   </article>`;
 }
 
@@ -202,7 +207,7 @@ function learnHTML(L) {
 function renderCredits() {
   document.documentElement.style.setProperty("--c", "#2F3E66");
   const rows = [];
-  LESSONS.forEach(l => (READINGS[l.id] || []).forEach(s => s.img && rows.push([l, s.img])));
+  LESSONS.forEach(l => (READINGS[l.id] || []).forEach(s => (s.imgs || []).forEach(im => rows.push([l, im]))));
   app.innerHTML = `<h1>📷 ប្រភពរូបភាព</h1>
     <p>រូបថតទាំងអស់មកពី <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a> ដែលអនុញ្ញាតឱ្យប្រើដោយសេរី (អាជ្ញាប័ណ្ណ Creative Commons ឬសាធារណៈ)។ ចុចលើឈ្មោះឯកសារ ដើម្បីមើលឈ្មោះអ្នកថត និងលក្ខខណ្ឌអាជ្ញាប័ណ្ណ។</p>
     <div class="box teacher"><table><tr><th>មេរៀន</th><th>រូបភាព</th><th>ឯកសារលើ Commons</th></tr>
