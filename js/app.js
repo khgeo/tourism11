@@ -594,6 +594,7 @@ function renderTeacher(sub, n, x, y) {
       <a class="tcard" href="#/teacher/answers"><span>🔑</span><b>ចម្លើយតេស្ត</b><small>តេស្តរហ័សទាំង១២មេរៀន</small></a>
       <a class="tcard" href="plan/tourism11-lesson-plan.docx" download><span>📝</span><b>កិច្ចតែងការ Word</b><small>ទាញយក ហើយកែបាន</small></a>
       <a class="tcard" href="plan/tourism11-lesson-plan.pdf" target="_blank" rel="noopener"><span>🖨️</span><b>កិច្ចតែងការ PDF</b><small>សម្រាប់បោះពុម្ព</small></a>
+      <a class="tcard" href="plan/annual-plan-2026-2027.pdf" target="_blank" rel="noopener"><span>🗓️</span><b>ផែនការប្រចាំឆ្នាំ ២០២៦-២០២៧</b><small>តាមទម្រង់សាលា · វិច្ឆិកា–សីហា</small></a>
     </div>
     <div class="box"><h2>📚 សម្ភារៈតាមមេរៀន</h2>
       <p class="legend">📋 កិច្ចតែងការ · ⬇️ PowerPoint (កែបាន) · 📄 PDF គ្រូ (មានកាតចម្លើយ) · 📱 PDF សិស្ស (គ្មានកាតចម្លើយ) · 🎓 ទំព័រសិស្ស</p>
