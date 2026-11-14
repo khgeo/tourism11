@@ -32,12 +32,54 @@ function confetti() {
   let f = 0; (function step() { x.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.y += p.v; p.x += Math.sin((f + p.s) / 10); x.fillStyle = p.c; x.fillRect(p.x, p.y, p.r, p.r * 1.6); }); if (++f < 160) requestAnimationFrame(step); else c.remove(); })();
 }
 
+/* ---------- teacher password ----------
+   ពាក្យសម្ងាត់ទំព័រគ្រូ ត្រូវរក្សាទុកជា SHA-256 hash (មិនមែនជាអក្សរផ្ទាល់)។
+   ដើម្បីប្តូរ៖ បើកទំព័រគ្រូ → ប៊ូតុង 🔑 ប្តូរពាក្យសម្ងាត់ → ចម្លង hash ថ្មី មកដាក់ខាងក្រោម។ */
+const TEACHER_HASH = "558571d43d0e363b7c30f3d7d6cfd88c40ae81a89550a1d1af6a20067ded6369";
+const TKEY = "t11-teacher-key";
+async function sha256(t) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("tourism11:" + t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+function teacherOK() { try { return localStorage.getItem(TKEY) === TEACHER_HASH; } catch (e) { return sessionStorage.getItem(TKEY) === TEACHER_HASH; } }
+function teacherLock() { try { localStorage.removeItem(TKEY); sessionStorage.removeItem(TKEY); } catch (e) {} location.hash = "#/"; }
+function renderLock() {
+  document.body.classList.remove("tmode");
+  $$("#mainnav a, #botnav a").forEach(a => a.classList.remove("on"));
+  app.innerHTML = `<section class="lockbox box">
+    <div class="lockic">🔒</div><h1>ទំព័រគ្រូ</h1>
+    <p>សូមបញ្ចូលពាក្យសម្ងាត់ ដើម្បីចូលទំព័រគ្រូ</p>
+    <form id="lockF"><input id="lockP" type="password" autocomplete="current-password" placeholder="ពាក្យសម្ងាត់" required>
+    <label class="lockrem"><input type="checkbox" id="lockR" checked> ចងចាំលើឧបករណ៍នេះ</label>
+    <button class="btn big" type="submit">🔓 ចូល</button></form>
+    <p class="lockerr" id="lockE" hidden>❌ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ</p>
+    <p><a href="#/">← ត្រឡប់ទៅទំព័រសិស្ស</a></p></section>`;
+  const inp = $("#lockP"); inp.focus();
+  $("#lockF").onsubmit = async e => {
+    e.preventDefault();
+    const h = await sha256(inp.value);
+    if (h !== TEACHER_HASH) { $("#lockE").hidden = false; inp.select(); return; }
+    try { ($("#lockR").checked ? localStorage : sessionStorage).setItem(TKEY, h); } catch (err) {}
+    try { if (!$("#lockR").checked) sessionStorage.setItem(TKEY, h); } catch (err) {}
+    route();
+  };
+}
+function teacherPassed() { if (teacherOK()) return true; try { return sessionStorage.getItem(TKEY) === TEACHER_HASH; } catch (e) { return false; } }
+async function changePassword() {
+  const a = prompt("ពាក្យសម្ងាត់ថ្មី (យ៉ាងតិច ៦ តួ)៖"); if (!a) return;
+  if (a.length < 6) return alert("ខ្លីពេក");
+  if (prompt("វាយពាក្យសម្ងាត់ថ្មីម្តងទៀត៖") !== a) return alert("មិនដូចគ្នា");
+  const h = await sha256(a);
+  prompt("ចម្លង hash នេះ ទៅដាក់ក្នុង js/app.js ត្រង់ TEACHER_HASH លើ GitHub។ ពាក្យសម្ងាត់ថ្មីនឹងប្រើបាន បន្ទាប់ពីគេហទំព័រ update (២-៣ នាទី)។", h);
+}
+
 /* ---------- router ---------- */
 function route() {
   const h = location.hash.replace(/^#\/?/, "").split("/");
   const page = h[0] || "home";
   if (page === "lesson" && h[2] === "plan") { location.replace("#/teacher/lesson/" + h[1]); return; }
   const tmode = page === "teacher" || page === "plan";
+  if (tmode && !teacherPassed()) { if (window.TT) TT.stop(); renderLock(); window.scrollTo(0, 0); return; }
   document.body.classList.toggle("tmode", tmode); document.body.classList.remove("tprint"); if (window.TT) TT.stop();
   const nav = tmode ? (page === "plan" ? "plan" : (window.TT && TT.nav(h[1])) || (h[1] === "answers" ? "answers" : "teacher")) : page === "lesson" ? "home" : page;
   $$("#mainnav a, #botnav a, #tnav a").forEach(a => a.classList.toggle("on", a.dataset.nav === nav));
@@ -55,6 +97,10 @@ function route() {
   window.scrollTo(0, 0); app.focus({ preventScroll: true });
 }
 addEventListener("hashchange", route);
+document.addEventListener("click", e => {
+  const t = e.target.closest("#tlock, #tOut, #tPw"); if (!t) return;
+  e.preventDefault(); if (t.id === "tPw") changePassword(); else teacherLock();
+});
 
 /* ---------- icons & illustrations (navy · mustard kit) ---------- */
 const N = "#2F3E66", G = "#D9A95B", C = "#F6EADA";
@@ -588,6 +634,7 @@ function renderTeacher(sub, n, x, y) {
     <td><a href="#/teacher/lesson/${l.id}"><b>${esc(l.title)}</b></a><small>ម៉ោងទី${l.sessions}</small></td>
     <td class="acts"><a href="#/teacher/lesson/${l.id}" title="កិច្ចតែងការ">📋</a><a href="${SL(l.id)}.pptx" download title="PowerPoint">⬇️</a><a href="${SL(l.id)}.pdf" target="_blank" rel="noopener" title="PDF គ្រូ">📄</a><a href="${SL(l.id)}-student.pdf" target="_blank" rel="noopener" title="PDF សិស្ស">📱</a><a href="#/lesson/${l.id}" title="ទំព័រសិស្ស">🎓</a></td></tr>`;
   app.innerHTML = tHead("ផ្ទាំងគ្រូ", "កិច្ចតែងការ ស្លាយ ចម្លើយតេស្ត និងការណែនាំសម្រាប់ថ្នាក់ ៥០-៦០នាក់ — ទំព័រនេះមិនបង្ហាញក្នុងម៉ឺនុយសិស្សទេ។")
+  + `<p class="lockbar"><button class="btn ghost" id="tPw">🔑 ប្តូរពាក្យសម្ងាត់</button> <button class="btn ghost" id="tOut">🔒 ចាកចេញពីទំព័រគ្រូ</button></p>`
   + (window.TT ? TT.dashCards() : "")
   + `<div class="tgrid">
       <a class="tcard" href="#/plan"><span>📋</span><b>ផែនការ និងកិច្ចតែងការ</b><small>ប្រចាំឆ្នាំ · ៣៤ម៉ោង · ថ្នាក់ធំគ្មាន LCD</small></a>
