@@ -165,8 +165,10 @@ function renderHome() {
   <div class="grid">${LESSONS.filter(l => l.semester === 1).map(card).join("")}</div>
   <div class="sem-title"><h2>ឆមាសទី២</h2><span class="line"></span><span class="cnt">មេរៀនទី៧-១២</span></div>
   <div class="grid">${LESSONS.filter(l => l.semester === 2).map(card).join("")}</div>
+  <p class="offbar"><button class="btn ghost" id="offAll">📥 រក្សាទុកមេរៀនទាំងអស់ សម្រាប់អានពេលគ្មានអ៊ីនធឺណិត</button></p>
   <div class="sem-title"><h2>ឧបករណ៍រៀនបន្ថែម</h2><span class="line"></span></div>
   ${menuRows()}`;
+  wireOfflineAll();
 }
 function menuRows() {
   return `<div class="extras">
@@ -182,6 +184,60 @@ function renderMenu() {
   app.innerHTML = `<div style="text-align:center;margin:8px 0 18px"><div class="avatar" style="width:96px;height:96px;margin:0 auto 6px;border:4px solid #fff;box-shadow:var(--shadow)">${AV}</div>
     <h1 style="margin:0">${P.name ? esc(P.name) : "អ្នកទេសចរ"}</h1><p style="margin:0;color:var(--muted)">ត្រា ${kh(LESSONS.filter(l => hasStamp(l.id)).length)} / ${kh(LESSONS.length)}</p></div>
     <div class="extras" style="margin-bottom:10px"><a class="extra" href="#/"><span>🎓</span><div><b>មេរៀនរបស់ខ្ញុំ</b><small>${kh(LESSONS.length)}មេរៀន · ៣៤ម៉ោង</small></div></a></div>${menuRows()}`;
+}
+
+
+/* ---------- offline save (per lesson / all) ---------- */
+const OFFC = "t11-offline";
+const lessonFiles = id => {
+  const imgs = ((typeof READINGS !== "undefined" && READINGS[id]) || []).flatMap(s => (s.imgs || []).map(im => CM(im.f)));
+  return { imgs, pdf: "plan/slides/tourism11-lesson-" + String(id).padStart(2, "0") + "-student.pdf" };
+};
+const offOK = () => "caches" in window && "serviceWorker" in navigator;
+async function isSaved(id) {
+  if (!offOK()) return false;
+  try { const c = await caches.open(OFFC); return !!(await c.match(lessonFiles(id).pdf)); } catch (e) { return false; }
+}
+async function saveLesson(id, withPdf = true) {
+  const c = await caches.open(OFFC), f = lessonFiles(id);
+  const urls = [...f.imgs, ...(withPdf ? [f.pdf] : [])];
+  let ok = 0;
+  for (const u of urls) {
+    try {
+      if (await c.match(u)) { ok++; continue; }
+      const same = !/^https?:/.test(u);
+      const r = await fetch(u, same ? {} : { mode: "no-cors" });
+      if (r.ok || r.type === "opaque") { await c.put(u, r); ok++; }
+    } catch (e) {}
+  }
+  if (withPdf && !(await c.match(f.pdf))) throw new Error("pdf");
+  return ok;
+}
+async function wireOffline(id) {
+  const b = $("#offBtn"); if (!b) return;
+  if (!offOK()) { b.closest(".offbar").remove(); return; }
+  const set = (t, cls) => { b.innerHTML = t; b.className = "btn " + cls; };
+  if (await isSaved(id)) set("✅ រក្សាទុករួច អានបានពេលគ្មានអ៊ីនធឺណិត", "ghost done");
+  b.onclick = async () => {
+    if (!navigator.onLine) return toast("ត្រូវការអ៊ីនធឺណិត ដើម្បីរក្សាទុកលើកដំបូង");
+    set("⏳ កំពុងរក្សាទុក…", "ghost"); b.disabled = true;
+    try { await saveLesson(id); set("✅ រក្សាទុករួច អានបានពេលគ្មានអ៊ីនធឺណិត", "ghost done"); toast("📥 មេរៀនទី" + kh(id) + " អានបានពេលគ្មានអ៊ីនធឺណិត"); }
+    catch (e) { set("📥 រក្សាទុកសម្រាប់អានពេលគ្មានអ៊ីនធឺណិត", ""); toast("មិនទាន់បាន — សាកម្តងទៀត"); }
+    b.disabled = false;
+  };
+}
+async function wireOfflineAll() {
+  const b = $("#offAll"); if (!b) return;
+  if (!offOK()) { b.closest(".offbar").remove(); return; }
+  const n = (await Promise.all(LESSONS.map(l => isSaved(l.id)))).filter(Boolean).length;
+  const lbl = n => n === LESSONS.length ? "✅ មេរៀនទាំង" + kh(LESSONS.length) + " អានបានពេលគ្មានអ៊ីនធឺណិត" : "📥 រក្សាទុកមេរៀនទាំងអស់ សម្រាប់អានពេលគ្មានអ៊ីនធឺណិត" + (n ? " (" + kh(n) + "/" + kh(LESSONS.length) + ")" : "");
+  b.innerHTML = lbl(n); if (n === LESSONS.length) b.classList.add("done");
+  b.onclick = async () => {
+    if (!navigator.onLine) return toast("ត្រូវការអ៊ីនធឺណិត ដើម្បីរក្សាទុកលើកដំបូង");
+    b.disabled = true; let done = 0;
+    for (const l of LESSONS) { b.innerHTML = "⏳ កំពុងរក្សាទុក មេរៀនទី" + kh(l.id) + "/" + kh(LESSONS.length) + "…"; try { await saveLesson(l.id); done++; } catch (e) {} }
+    b.disabled = false; b.innerHTML = lbl(done); if (done === LESSONS.length) { b.classList.add("done"); toast("📥 រួចរាល់! អានបានគ្រប់មេរៀន ពេលគ្មានអ៊ីនធឺណិត"); } else toast("បានខ្លះ — ចុចម្តងទៀត ដើម្បីបន្ត");
+  };
 }
 
 /* ---------- lesson ---------- */
@@ -202,6 +258,7 @@ function renderLesson(id, tab) {
   </section>
   <nav class="tabs">${TABS.map(([k, t]) => `<a href="#/lesson/${id}/${k}" class="${k === tab ? "on" : ""}">${IC[k]}<span>${t}</span></a>`).join("")}</nav>
   <div id="tabbody"></div>
+  <p class="offbar"><button class="btn" id="offBtn">📥 រក្សាទុកសម្រាប់អានពេលគ្មានអ៊ីនធឺណិត</button></p>
   <div class="lnav">
     ${prev ? `<a href="#/lesson/${prev.id}">« មេរៀនទី${kh(prev.id)}<br><small>${esc(prev.title)}</small></a>` : "<span></span>"}
     ${next ? `<a href="#/lesson/${next.id}" style="text-align:right">មេរៀនទី${kh(next.id)} »<br><small>${esc(next.title)}</small></a>` : `<a href="#/review/2" style="text-align:right">តេស្តរំលឹកចុងឆ្នាំ »</a>`}
@@ -215,6 +272,7 @@ function renderLesson(id, tab) {
     if (!before && hasStamp(L.id)) { confetti(); toast("🛂 អ្នកទទួលបានត្រាមេរៀនទី" + kh(L.id) + "!"); }
   }, `<a class="btn ghost" href="#/lesson/${L.id}/learn">អានមេរៀនម្តងទៀត</a> <a class="btn" href="#/passport">មើលលិខិតឆ្លងដែន</a>`);
   else B.innerHTML = moreHTML(L);
+  wireOffline(L.id);
 }
 
 const CM = f => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(f) + "?width=960";
