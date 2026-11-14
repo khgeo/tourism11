@@ -557,3 +557,5 @@ details.box summary:after{content:" ▾";color:var(--gold)}
 .lockrem{font-size:14px;display:flex;gap:6px;justify-content:center;align-items:center}
 .lockerr{color:#C0392B;font-weight:600}
 .lockbar{margin:-4px 0 14px;display:flex;gap:8px;flex-wrap:wrap}
+.offbar{text-align:center;margin:14px 0}
+.offbar .btn.done{border-color:#2e8b57;color:#2e8b57}
