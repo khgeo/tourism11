@@ -1,5 +1,5 @@
 // Offline support: pages and scripts are fetched fresh when online and served from cache when offline.
-const CACHE = "t11-v1";
+const CACHE = "t11-v2";
 const CORE = ["./", "index.html", "css/style.css", "js/data.js", "js/plans.js", "js/readings.js", "js/bank.js", "js/tools.js", "js/app.js"];
 const LIBS = /cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.(googleapis|gstatic)\.com/;
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())));
