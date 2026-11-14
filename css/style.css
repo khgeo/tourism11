@@ -547,3 +547,13 @@ details.box summary:after{content:" ▾";color:var(--gold)}
   @page{size:A4;margin:11mm 12mm}
   @page sheet{size:A4;margin:0}
 }
+
+/* teacher password lock */
+.lockbox{max-width:380px;margin:8vh auto;text-align:center;padding:28px 22px}
+.lockbox .lockic{font-size:46px;line-height:1}
+.lockbox form{display:flex;flex-direction:column;gap:12px;margin:14px 0}
+.lockbox input[type=password]{font:inherit;font-size:18px;padding:10px 12px;border:2px solid #c9bfae;border-radius:10px;text-align:center}
+.lockbox input[type=password]:focus{outline:none;border-color:var(--navy,#2F3E66)}
+.lockrem{font-size:14px;display:flex;gap:6px;justify-content:center;align-items:center}
+.lockerr{color:#C0392B;font-weight:600}
+.lockbar{margin:-4px 0 14px;display:flex;gap:8px;flex-wrap:wrap}
